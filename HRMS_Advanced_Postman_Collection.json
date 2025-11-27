@@ -1,0 +1,986 @@
+{
+  "info": {
+    "name": "HRMS Advanced API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Auto Capture Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if(json.access){ pm.collectionVariables.set('access_token', json.access); }",
+                  "if(json.refresh){ pm.collectionVariables.set('refresh_token', json.refresh); }",
+                  "pm.test('Login successful', ()=> pm.response.code===200 );"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/forgot-password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "forgot-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/verify-otp/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "verify-otp"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"otp\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reset-password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reset-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"new_password\": \"\",\n  \"confirm_password\": \"\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Employee",
+      "item": [
+        {
+          "name": "My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/my-profile/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "my-profile"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/my-profile/contact/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "my-profile", "contact"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personal_email\": \"\",\n  \"phone_number\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Update Identification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/my-profile/identification/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "my-profile", "identification"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aadhaar_number\": \"\",\n  \"pan_number\": \"\",\n  \"passport_number\": \"\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Clock In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/clock-in/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "clock-in"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Clock Out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/clock-out/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "clock-out"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "My Attendance Days",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/days/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "days"]
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Leaves",
+      "item": [
+        {
+          "name": "My Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leave/my-balance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leave", "my-balance"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "My Leave Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leave/my-requests/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leave", "my-requests"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Apply Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leave/apply/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leave", "apply"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type_id\": 1,\n  \"start_date\": \"\",\n  \"end_date\": \"\",\n  \"days\": \"\",\n  \"reason\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "TL/HR Leave Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/action/leave/<leave_id>/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "action", "leave", "<leave_id>"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/mark-read/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "mark-read"]
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "item": [
+        {
+          "name": "Calendar Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/calendar/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar"]
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Payroll & Salary",
+      "item": [
+        {
+          "name": "My Salary Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payroll/my-details/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payroll", "my-details"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "My Payslips",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payroll/my-payslips/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payroll", "my-payslips"]
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "HR",
+      "item": [
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hr/create-employee/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hr", "create-employee"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"\",\n  \"last_name\": \"\",\n  \"role\": \"\",\n  \"emp_id\": \"\",\n  \"work_email\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Employees List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employees/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Employee Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Update JobBank",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1/jobbank/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1", "jobbank"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_role\": \"\",\n  \"department\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Attendance List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Attendance Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "1"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Correct Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/1/correct/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "1", "correct"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"\",\n  \"in_time\": \"\",\n  \"out_time\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Shift List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shifts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shifts"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Create Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shifts/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shifts"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"start_time\": \"\",\n  \"end_time\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Shift Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shifts/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shifts", "1"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "HR Calendar Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/calendar/create/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar", "create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"date\": \"\",\n  \"description\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Salary Structures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/salary-structures/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "salary-structures"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Assign Salary",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1/assign-salary/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1", "assign-salary"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"structure_id\": \"\",\n  \"monthly_ctc\": \"\"\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Generate Payslip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1/generate-payslip/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1", "generate-payslip"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2025,\n  \"month\": 1\n}"
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Leave List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leaves/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leaves"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Leave Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leaves/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leaves", "1"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "HR Leave Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leaves/1/action/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leaves", "1", "action"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"\"\n}"
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "Team Leader",
+      "item": [
+        {
+          "name": "Team Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/team/members/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team", "members"]
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Team Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/team/attendance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team", "attendance"]
+            }
+          },
+          "event": []
+        }
+      ]
+    }
+  ]
+}

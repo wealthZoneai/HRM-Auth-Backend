@@ -1,3 +1,5 @@
+# hr/admin.py
 from django.contrib import admin
 
-# Register your models here.
+# HR app does not register models here.
+# Employee-related models are already registered in emp/admin.py.

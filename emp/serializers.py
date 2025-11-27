@@ -1,164 +1,187 @@
-from emp.models import EmployeeProfile
+# emp/serializers.py
 from rest_framework import serializers
-from django.conf import settings
+from .models import (
+    EmployeeProfile, Notification, Shift, Attendance, CalendarEvent,
+    SalaryStructure, EmployeeSalary, Payslip,
+    LeaveType, LeaveBalance, LeaveRequest, Policy
+)
 from django.contrib.auth import get_user_model
-from .models import EmployeeProfile, Attendance
-from django.utils import timezone
-from django.contrib.auth.hashers import make_password
-
+from django.utils.crypto import get_random_string
 
 User = get_user_model()
 
 
-class EmployeeReadSerializer(serializers.ModelSerializer):
-    # show some user-level fields alongside profile
-    username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
-    # profile.role or mirrored user role
-    role = serializers.CharField(read_only=True)
+# Profile
 
-    class Meta:
-        model = EmployeeProfile
-        # Explicit fields for clarity (instead of '__all__')
-        fields = [
-            'id', 'username', 'email', 'role',
-            'emp_id', 'first_name', 'last_name', 'dob', 'gender',
-            'work_email', 'personal_email', 'phone_number',
-            'job_title', 'department', 'manager', 'employment_type', 'start_date', 'location', 'job_description',
-            'bank_name', 'account_number', 'ifsc_code', 'branch',
-            'aadhaar', 'pan', 'id_card',
-            'passport_image', 'id_card_image', 'aadhaar_image', 'pan_image',
-            'profile_photo',
-            'created_at', 'updated_at',
-        ]
-        read_only_fields = fields  # list API and read API are read-only
+class EmployeeCreateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=True, max_length=80)
+    last_name = serializers.CharField(required=True, max_length=80)
+    role = serializers.ChoiceField(choices=[('employee', 'Employee'), ('intern', 'Intern'), (
+        'tl', 'Team Leader'), ('hr', 'HR'), ('management', 'Management')], default='employee')
+    emp_id = serializers.CharField(
+        required=False, allow_blank=True, max_length=50)
+    work_email = serializers.EmailField(required=False, allow_blank=True)
 
-# Serializer used by HR/Management to create an employee
-
-
-User = get_user_model()
-
-
-class EmployeeCreateByHRSerializer(serializers.Serializer):
-
-    # HR inputs
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    role = serializers.CharField()
-
-    job_title = serializers.CharField(required=False)
-    department = serializers.CharField(required=False)
-    employment_type = serializers.CharField(required=False)
-    start_date = serializers.DateField(required=False)
-    location = serializers.CharField(required=False)
-
-    manager = serializers.IntegerField(required=False)
-
-    # Auto-generated fields (read-only)
-    username = serializers.CharField(read_only=True)
-    work_email = serializers.EmailField(read_only=True)
-
-    def validate_role(self, value):
-        allowed = ["employee", "intern", "tl"]
-        if value not in allowed:
-            raise serializers.ValidationError("Invalid role.")
+    def validate_work_email(self, value):
+        if value and User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError(
+                "User with this email already exists.")
         return value
 
     def create(self, validated_data):
-        first_name = validated_data["first_name"]
-        last_name = validated_data["last_name"]
-        role = validated_data["role"]
-
-        # Create user using create_user so Django fields set properly
-        # Use an empty password first, then mark unusable.
+        first_name = validated_data.get('first_name', '').strip()
+        last_name = validated_data.get('last_name', '').strip()
+        role = validated_data.get('role', 'employee')
+        email = (validated_data.get('work_email') or '').strip() or None
+        base_username = f"{first_name.lower()}.{last_name.lower()}" if first_name or last_name else "user"
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        # create user safely
         user = User.objects.create_user(
-            username="",   # signal will generate username
-            password=None,  # create_user allows None, but we'll set unusable below
-            first_name=first_name,
-            last_name=last_name,
-            role=role,
-            email=""       # signal will generate/fill email if needed
-        )
-
-        # Immediately make password unusable so login fails until reset
+            username=username, password=None, first_name=first_name, last_name=last_name, email=email, role=role)
         user.set_unusable_password()
-        user.save(update_fields=['password'])
+        user.save()
+        # EmployeeProfile created by signals - ensure it exists
+        prof, created = EmployeeProfile.objects.get_or_create(user=user, defaults={
+            'emp_id': validated_data.get('emp_id') or '',
+            'work_email': email or '',
+            'first_name': first_name or '',
+            'last_name': last_name or '',
+            'role': role
+        })
+        if validated_data.get('emp_id'):
+            prof.emp_id = validated_data.get('emp_id')
+            prof.save(update_fields=['emp_id'])
+        return user, prof
 
-        # Signal will auto-create EmployeeProfile (login/signals.py)
-        profile = user.employeeprofile
-
-        # Fill profile fields provided by HR
-        for field in ["emp_id", "job_title", "department", "employment_type",
-                      "start_date", "location"]:
-            if field in validated_data:
-                setattr(profile, field, validated_data[field])
-
-        if "manager" in validated_data:
-            try:
-                profile.manager = User.objects.get(
-                    id=validated_data["manager"])
-            except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    {"manager": "Manager user does not exist."})
-
-        profile.save()
-        return profile
+    def save(self, **kwargs):
+        return self.create(self.validated_data)
 
 
-class EmployeeUpdateByEmployeeSerializer(serializers.ModelSerializer):
+class EmployeeProfileReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeProfile
-        fields = [
-            'personal_email',
-            'phone_number',
-            'profile_photo',
-            'passport_image',
-            'id_card_image',
-            'aadhaar_image',
-            'pan_image',
-        ]
+        exclude = ('id', 'created_at', 'updated_at')
+
+
+class EmployeeContactUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeProfile
+        fields = ('personal_email', 'phone_number', 'profile_photo')
+
+
+class EmployeeIdentificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeProfile
+        fields = ('aadhaar', 'pan', 'id_card_number',
+                  'aadhaar_image', 'pan_image', 'id_card_image')
+
+
+# Notifications
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('id', 'title', 'body', 'notif_type',
+                  'is_read', 'created_at', 'extra')
+
+
+# Attendance / Shift
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shift
+        fields = '__all__'
 
 
 class AttendanceReadSerializer(serializers.ModelSerializer):
-    # friendly formatted fields
-    clock_in_iso = serializers.DateTimeField(source='clock_in', read_only=True)
-    clock_out_iso = serializers.DateTimeField(
-        source='clock_out', read_only=True)
-    duration_seconds = serializers.IntegerField(read_only=True)
-    duration_human = serializers.SerializerMethodField()
-
     class Meta:
         model = Attendance
-        fields = [
-            'id', 'user', 'date', 'clock_in_iso', 'clock_out_iso',
-            'duration_seconds', 'duration_human', 'status', 'note',
-        ]
-        read_only_fields = fields
-
-    def get_duration_human(self, obj):
-        if not obj.duration_seconds:
-            return None
-        secs = obj.duration_seconds
-        hours = secs // 3600
-        mins = (secs % 3600) // 60
-        secs_rem = secs % 60
-        return f"{hours}h {mins}m {secs_rem}s"
+        fields = ('id', 'date', 'shift', 'clock_in', 'clock_out', 'duration_seconds', 'status',
+                  'is_remote', 'late_by_seconds', 'overtime_seconds', 'note', 'manual_entry')
 
 
-class ClockInSerializer(serializers.Serializer):
-    # optional note
-    note = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True)
+# Calendar
+
+
+class CalendarEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalendarEvent
+        fields = '__all__'
+
+# Payroll
+
+
+class SalaryStructureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalaryStructure
+        fields = '__all__'
+
+
+class EmployeeSalarySerializer(serializers.ModelSerializer):
+    structure = SalaryStructureSerializer(read_only=True)
+
+    class Meta:
+        model = EmployeeSalary
+        fields = '__all__'
+
+
+class PayslipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payslip
+        fields = '__all__'
+
+# Leave
+
+
+class LeaveTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeaveType
+        fields = '__all__'
+
+
+class LeaveBalanceSerializer(serializers.ModelSerializer):
+    available = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeaveBalance
+        fields = ('id', 'leave_type', 'total_allocated', 'used', 'available')
+
+    def get_available(self, obj):
+        return float(obj.total_allocated) - float(obj.used)
+
+
+class LeaveRequestSerializer(serializers.ModelSerializer):
+    profile = EmployeeProfileReadSerializer(read_only=True)
+
+    class Meta:
+        model = LeaveRequest
+        fields = ('id', 'profile', 'leave_type', 'start_date', 'end_date', 'days',
+                  'reason', 'applied_at', 'status', 'tl', 'hr', 'tl_remarks', 'hr_remarks')
+
+
+class LeaveApplySerializer(serializers.Serializer):
+    leave_type_id = serializers.IntegerField()
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    days = serializers.DecimalField(max_digits=5, decimal_places=2)
+    reason = serializers.CharField(allow_blank=True, required=False)
 
     def validate(self, data):
-        # nothing complex here; controller (view) will enforce one-per-day
+        if data['end_date'] < data['start_date']:
+            raise serializers.ValidationError(
+                "End date cannot be before start date.")
         return data
 
+# Policies
 
-class ClockOutSerializer(serializers.Serializer):
-    # optional note on clock-out
-    note = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True)
 
-    def validate(self, data):
-        return data
+class PolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Policy
+        fields = '__all__'

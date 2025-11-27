@@ -1,24 +1,45 @@
-from rest_framework.permissions import BasePermission
+# emp/permissions.py
+from rest_framework import permissions
+import logging
+logger = logging.getLogger(__name__)
 
-class IsHRorManagement(BasePermission):
-    """
-    Allow access if user.role is 'hr' or 'management'.
-    """
+
+class IsHROrManagement(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        if not user or not user.is_authenticated:
-            return False
-        return getattr(user, 'role', None) in ('hr', 'management')
+        ok = bool(user and user.is_authenticated and getattr(
+            user, 'role', None) in ('hr', 'management'))
+        if not ok:
+            logger.info("Permission denied for user=%s role=%s path=%s", getattr(
+                user, 'id', None), getattr(user, 'role', None), request.path)
+        return ok
 
-class IsOwnerOrHRorManagement(BasePermission):
+
+class IsTLorHRorOwner(permissions.BasePermission):
     """
-    Object-level permission: allow if owner (user of the profile) or HR/Management
+    TL or HR or the owner (employee) can access/modify.
+    For leave objects, TL is manager of the profile (profile.manager == user)
     """
+
     def has_object_permission(self, request, view, obj):
-        # obj is EmployeeProfile instance
         user = request.user
         if not user or not user.is_authenticated:
             return False
         if getattr(user, 'role', None) in ('hr', 'management'):
             return True
-        return obj.user == user
+        if getattr(user, 'role', None) == 'tl':
+            try:
+                profile = getattr(obj, 'profile', None) or obj
+                owner_user = getattr(profile, 'user', None)
+                return owner_user and getattr(owner_user.employeeprofile, 'manager', None) == user
+            except Exception:
+                return False
+        # owner fallback
+        try:
+            profile = getattr(obj, 'profile', None)
+            if profile:
+                return profile.user == user
+            owner_user = getattr(obj, 'user', None)
+            return owner_user == user
+        except Exception:
+            return False

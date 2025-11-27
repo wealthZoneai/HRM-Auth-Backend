@@ -1,3 +1,2 @@
-from django.db import models
-
-# Create your models here.
+# tl/models.py
+# TL app depends on emp.models, no models required.
