@@ -1,5 +1,6 @@
 # emp/views.py
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
@@ -268,6 +269,7 @@ class LeaveApplyAPIView(APIView):
             models.Notification.objects.create(
                 to_user=tl_user, title=f"Leave request from {prof.full_name()}", body=f"{prof.full_name()} applied for {lt.name} from {lr.start_date} to {lr.end_date}.", notif_type='leave', extra={'leave_request_id': lr.id})
         return Response(serializers.LeaveRequestSerializer(lr).data, status=201)
+
 
 # --- HR support endpoints ---
 

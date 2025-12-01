@@ -62,9 +62,21 @@ class EmployeeCreateSerializer(serializers.Serializer):
 
 
 class EmployeeProfileReadSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
     class Meta:
         model = EmployeeProfile
-        exclude = ('id', 'created_at', 'updated_at')
+        exclude = ('id', 'created_at', 'updated_at', 'username')
+
+    def get_user(self, obj):
+        return {
+            "id": obj.user.id,
+            "username": obj.user.username,
+            "first_name": obj.user.first_name,
+            "last_name": obj.user.last_name,
+            "email": obj.user.email,
+            "role": obj.user.role,
+        }
 
 
 class EmployeeContactUpdateSerializer(serializers.ModelSerializer):

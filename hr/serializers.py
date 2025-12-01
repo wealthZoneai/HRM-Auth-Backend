@@ -39,7 +39,7 @@ class ShiftSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AttendanceAdminSerializer(serializers.ModelSerializer):
-    user = UserBasicSerializer(source='user', read_only=True)
+    user = UserBasicSerializer(read_only=True)
     class Meta:
         model = Attendance
         fields = ('id','user','date','shift','clock_in','clock_out','duration_seconds','status','is_remote','late_by_seconds','overtime_seconds','note','manual_entry')
