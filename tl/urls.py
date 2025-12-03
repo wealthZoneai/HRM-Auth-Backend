@@ -6,6 +6,7 @@ urlpatterns = [
     path("team/members/", views.TLTeamMembersAPIView.as_view()),
     path("team/attendance/", views.TLTeamAttendanceAPIView.as_view()),
     path("team/dashboard/", views.TLDashboardAPIView.as_view()),
+    path("tl/list/", views.TeamLeadListAPIView.as_view()),
 
     # Leave management
     path("leave/pending/", views.TLPendingLeaveAPIView.as_view()),

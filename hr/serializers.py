@@ -29,7 +29,7 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
 class EmployeeJobBankUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeProfile
-        fields = ('job_title','department','manager','employment_type','start_date','location','job_description',
+        fields = ('job_title','department','team_lead','employment_type','start_date','location','job_description',
                   'bank_name','account_number','ifsc_code','branch')
 
 # Shift & Attendance serializers (HR)

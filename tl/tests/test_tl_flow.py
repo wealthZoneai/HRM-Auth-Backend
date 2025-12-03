@@ -15,8 +15,8 @@ class TLTests(APITestCase):
             username='tm1', password='tmp',
             role='employee', email='tm1@example.com'
         )
-        # assign tl as manager
-        self.emp.employeeprofile.manager = self.tl
+        
+        self.emp.employeeprofile.team_lead = self.tl
         self.emp.employeeprofile.save()
 
         self.client = APIClient()

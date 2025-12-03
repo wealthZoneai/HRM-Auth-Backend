@@ -15,8 +15,8 @@ class LeaveTests(APITestCase):
         self.emp = User.objects.create_user(
             username='empL', password='epass', role='employee', email='empL@example.com')
 
-        # Assign TL as manager
-        self.emp.employeeprofile.manager = self.tl
+     
+        self.emp.employeeprofile.team_lead = self.tl
         self.emp.employeeprofile.save()
 
         self.lt = LeaveType.objects.create(name='Casual')

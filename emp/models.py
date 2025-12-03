@@ -7,18 +7,6 @@ from .validators import validate_file_size, validate_image_extension
 
 User = settings.AUTH_USER_MODEL
 
-# -----------------------
-# Core / Profile
-# -----------------------
-
-
-class Department(models.Model):
-    name = models.CharField(max_length=150)
-    code = models.CharField(max_length=50, null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
 
 class EmployeeProfile(models.Model):
     user = models.OneToOneField(
@@ -26,50 +14,110 @@ class EmployeeProfile(models.Model):
 
     # System fields
     emp_id = models.CharField(max_length=20, unique=True)
+    team_lead = models.CharField(max_length=150, null=True, blank=True,
+                                 help_text="Team Lead username or name (stored as text).")
     work_email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, null=True, blank=True)
 
-    # Contact Info (employee editable)
-    personal_email = models.EmailField(null=True, blank=True)
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
-    profile_photo = models.ImageField(upload_to='profile_photos/', null=True,
-                                      blank=True, validators=[validate_file_size, validate_image_extension])
+    # Contact Information (Employee Editable)
 
-    # Identity
-    aadhaar = models.CharField(max_length=20, null=True, blank=True)
-    pan = models.CharField(max_length=20, null=True, blank=True)
-    id_card_number = models.CharField(max_length=50, null=True, blank=True)
-    aadhaar_image = models.ImageField(upload_to='ids/aadhaar/', null=True,
-                                      blank=True, validators=[validate_file_size, validate_image_extension])
-    pan_image = models.ImageField(upload_to='ids/pan/', null=True, blank=True,
-                                  validators=[validate_file_size, validate_image_extension])
-    id_card_image = models.ImageField(upload_to='ids/idcard/', null=True,
-                                      blank=True, validators=[validate_file_size, validate_image_extension])
-
-    # Job Info (HR editable)
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
-    dob = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=20, null=True, blank=True)
+    middle_name = models.CharField(max_length=80, null=True, blank=True)
 
+    personal_email = models.EmailField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    alternate_number = models.CharField(max_length=20, null=True, blank=True)
+
+    dob = models.DateField(null=True, blank=True)
+    blood_group = models.CharField(max_length=5, null=True, blank=True)
+
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    marital_status = models.CharField(max_length=20, null=True, blank=True)
+
+    profile_photo = models.ImageField(
+        upload_to='profile_photos/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
+    # Identity Information
+    aadhaar_number = models.CharField(max_length=20, null=True, blank=True)
+    aadhaar_image = models.ImageField(
+        upload_to='ids/aadhaar/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
+    pan = models.CharField(max_length=20, null=True, blank=True)
+    pan_image = models.ImageField(
+        upload_to='ids/pan/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
+    passport_number = models.CharField(max_length=20, null=True, blank=True)
+    passport_image = models.ImageField(
+        upload_to='ids/passport/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
+    # Existing Id Card Fields (keep as is)
+    id_card_number = models.CharField(max_length=50, null=True, blank=True)
+    id_card_image = models.ImageField(
+        upload_to='ids/idcard/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
+    # Job Information (HR Editable)
     job_title = models.CharField(max_length=150, null=True, blank=True)
-    department = models.ForeignKey(
-        Department, null=True, blank=True, on_delete=models.SET_NULL)
-    manager = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
-                                blank=True, on_delete=models.SET_NULL, related_name='team_members')
+
+    DEPARTMENT_CHOICES = [
+        ('Python', 'Python'),
+        ('Testing', 'Testing'),
+        ('Java', 'Java'),
+        ('UI/UX', 'UI/UX'),
+        ('React', 'React'),
+        ('Cyber Security', 'Cyber Security'),
+        ('Digital Marketing', 'Digital Marketing'),
+        ('HR', 'HR'),
+        ('BDM', 'BDM'),
+        ('Networking', 'Networking'),
+        ('Cloud', 'Cloud (AWS/DevOps)'),
+    ]
+
+    department = models.CharField(
+        max_length=100, choices=DEPARTMENT_CHOICES, blank=True, null=True)
+
+    team_lead = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='assigned_employees'
+    )
+
     employment_type = models.CharField(max_length=50, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=150, null=True, blank=True)
     job_description = models.TextField(null=True, blank=True)
 
-    # Bank Details (HR editable)
+    id_image = models.ImageField(
+        upload_to='employee/id_cards/',
+        null=True,
+        blank=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
+
     bank_name = models.CharField(max_length=150, null=True, blank=True)
     account_number = models.CharField(max_length=64, null=True, blank=True)
     ifsc_code = models.CharField(max_length=20, null=True, blank=True)
     branch = models.CharField(max_length=150, null=True, blank=True)
 
-    # Role / flags
-    # 'hr','management','tl','employee','intern'
     role = models.CharField(max_length=30, default='employee')
     is_active = models.BooleanField(default=True)
 
@@ -86,9 +134,8 @@ class EmployeeProfile(models.Model):
         ordering = ['-created_at']
 
 
-# -----------------------
 # Notifications
-# -----------------------
+
 class Notification(models.Model):
     NOTIF_TYPES = [
         ('announcement', 'Announcement'),
@@ -312,7 +359,7 @@ class LeaveRequest(models.Model):
     ]
     profile = models.ForeignKey(
         EmployeeProfile, on_delete=models.CASCADE, related_name='leave_requests')
-    leave_type = models.ForeignKey(LeaveType, on_delete=models.PROTECT)
+    leave_type = models.CharField(max_length=120)
     start_date = models.DateField()
     end_date = models.DateField()
     days = models.DecimalField(max_digits=5, decimal_places=2)

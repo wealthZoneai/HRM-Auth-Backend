@@ -23,7 +23,7 @@
       "name": "Authentication",
       "item": [
         {
-          "name": "Login (Auto Capture Token)",
+          "name": "Login",
           "request": {
             "method": "POST",
             "header": [
@@ -523,21 +523,15 @@
       ]
     },
     {
-      "name": "HR",
+      "name": "HR Management",
       "item": [
         {
-          "name": "Create Employee",
+          "name": "HR Create Employee (JSON – No Images)",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{access_token}}"
-              }
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
               "raw": "{{base_url}}/api/hr/create-employee/",
@@ -546,10 +540,85 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"\",\n  \"last_name\": \"\",\n  \"role\": \"\",\n  \"emp_id\": \"\",\n  \"work_email\": \"\"\n}"
+              "raw": "{\n  \"role\": \"employee\",\n  \"emp_id\": \"WZG-AI-0105\",\n  \"work_email\": \"test.employee@company.com\",\n\n  \"contact\": {\n    \"first_name\": \"Naveen\",\n    \"middle_name\": \"\",\n    \"last_name\": \"Kumar\",\n    \"personal_email\": \"naveen.personal@gmail.com\",\n    \"phone_number\": \"9876543210\",\n    \"alternate_number\": \"\",\n    \"dob\": \"2000-05-20\",\n    \"blood_group\": \"A+\",\n    \"gender\": \"male\",\n    \"marital_status\": \"single\"\n  },\n\n  \"job\": {\n    \"job_title\": \"Python Developer\",\n    \"department\": \"Python\",\n    \"team_lead\": 12,\n    \"employment_type\": \"full_time\",\n    \"start_date\": \"2025-02-01\",\n    \"location\": \"Hyderabad\",\n    \"job_description\": \"Backend developer\"\n  },\n\n  \"bank\": {\n    \"bank_name\": \"HDFC Bank\",\n    \"ifsc_code\": \"HDFC0001234\",\n    \"account_number\": \"1234567890\",\n    \"confirm_account_number\": \"1234567890\",\n    \"branch\": \"Kukatpally\"\n  },\n\n  \"identification\": {\n    \"aadhaar_number\": \"123456789012\",\n    \"pan_number\": \"ABCDE1234F\",\n    \"passport_number\": \"BZ1234567\"\n  }\n}"
             }
-          },
-          "event": []
+          }
+        },
+        {
+          "name": "HR Create Employee (Multipart – With Images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hr/create-employee/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hr", "create-employee"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "role", "value": "employee", "type": "text" },
+                { "key": "emp_id", "value": "WZG-AI-0106", "type": "text" },
+                {
+                  "key": "work_email",
+                  "value": "employee6@company.com",
+                  "type": "text"
+                },
+
+                {
+                  "key": "contact",
+                  "value": "{\"first_name\":\"Ravi\",\"middle_name\":\"\",\"last_name\":\"Teja\",\"personal_email\":\"raviteja.personal@gmail.com\",\"phone_number\":\"9876500000\",\"alternate_number\":\"\",\"dob\":\"1999-12-10\",\"blood_group\":\"O+\",\"gender\":\"male\",\"marital_status\":\"single\"}",
+                  "type": "text"
+                },
+
+                {
+                  "key": "job",
+                  "value": "{\"job_title\":\"UI Designer\",\"department\":\"UI/UX\",\"team_lead\":12,\"employment_type\":\"full_time\",\"start_date\":\"2025-02-01\",\"location\":\"Hyderabad\",\"job_description\":\"Frontend/UI designer\"}",
+                  "type": "text"
+                },
+
+                {
+                  "key": "bank",
+                  "value": "{\"bank_name\":\"SBI\",\"ifsc_code\":\"SBIN0012345\",\"account_number\":\"9876543210\",\"confirm_account_number\":\"9876543210\",\"branch\":\"Ameerpet\"}",
+                  "type": "text"
+                },
+
+                {
+                  "key": "identification",
+                  "value": "{\"aadhaar_number\":\"123412341234\",\"pan_number\":\"ABCDE1234F\",\"passport_number\":\"QW1234567\"}",
+                  "type": "text"
+                },
+
+                {
+                  "key": "contact.profile_photo",
+                  "type": "file",
+                  "src": "/C:/Users/YourPC/Downloads/sample1.jpg"
+                },
+                {
+                  "key": "job.id_image",
+                  "type": "file",
+                  "src": "/C:/Users/YourPC/Downloads/sample2.jpg"
+                },
+                {
+                  "key": "identification.aadhaar_image",
+                  "type": "file",
+                  "src": "/C:/Users/YourPC/Downloads/sample3.jpg"
+                },
+                {
+                  "key": "identification.pan_image",
+                  "type": "file",
+                  "src": "/C:/Users/YourPC/Downloads/sample4.jpg"
+                },
+                {
+                  "key": "identification.passport_image",
+                  "type": "file",
+                  "src": "/C:/Users/YourPC/Downloads/sample5.jpg"
+                }
+              ]
+            }
+          }
         },
         {
           "name": "Employees List",

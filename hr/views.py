@@ -21,7 +21,7 @@ User = get_user_model()
 class HRListEmployeesAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsHR]
     serializer_class = serializers.EmployeeListSerializer
-    queryset = EmployeeProfile.objects.all().select_related('user', 'department')
+    queryset = EmployeeProfile.objects.all().select_related('user')
 
 
 class HRRetrieveEmployeeAPIView(generics.RetrieveAPIView):

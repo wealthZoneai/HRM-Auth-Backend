@@ -18,7 +18,7 @@ class IsHROrManagement(permissions.BasePermission):
 class IsTLorHRorOwner(permissions.BasePermission):
     """
     TL or HR or the owner (employee) can access/modify.
-    For leave objects, TL is manager of the profile (profile.manager == user)
+    For leave objects, TL is team lead of the profile (profile.team_lead == user)
     """
 
     def has_object_permission(self, request, view, obj):
@@ -31,7 +31,7 @@ class IsTLorHRorOwner(permissions.BasePermission):
             try:
                 profile = getattr(obj, 'profile', None) or obj
                 owner_user = getattr(profile, 'user', None)
-                return owner_user and getattr(owner_user.employeeprofile, 'manager', None) == user
+                return owner_user and getattr(owner_user.employeeprofile, 'team_lead', None) == user
             except Exception:
                 return False
         # owner fallback

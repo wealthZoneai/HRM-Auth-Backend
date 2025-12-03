@@ -6,15 +6,15 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Sum
 from django.utils import timezone
-
+from django.contrib.auth import get_user_model
 from emp.models import EmployeeProfile, LeaveRequest, Attendance, CalendarEvent
 from emp.serializers import LeaveRequestSerializer, AttendanceReadSerializer, CalendarEventSerializer
 from .serializers import TeamMemberSerializer
 from .permissions import IsTL
+User = get_user_model()
 
-# ------------------------------
+
 # TL: Team Members List
-# ------------------------------
 
 
 class TLTeamMembersAPIView(generics.ListAPIView):
@@ -22,13 +22,12 @@ class TLTeamMembersAPIView(generics.ListAPIView):
     serializer_class = TeamMemberSerializer
 
     def get_queryset(self):
-        # TL can see ONLY team members whose manager = TL
-        return EmployeeProfile.objects.filter(manager=self.request.user)
+
+        return EmployeeProfile.objects.filter(team_lead=self.request.user)
 
 
-# ------------------------------
 # TL: Pending Leave Requests
-# ------------------------------
+
 class TLPendingLeaveAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsTL]
     serializer_class = LeaveRequestSerializer
@@ -40,9 +39,8 @@ class TLPendingLeaveAPIView(generics.ListAPIView):
         ).select_related("profile", "leave_type")
 
 
-# ------------------------------
 # TL: Approve/Reject Leave
-# ------------------------------
+
 class TLApproveRejectLeaveAPIView(APIView):
     permission_classes = [IsAuthenticated, IsTL]
 
@@ -64,9 +62,8 @@ class TLApproveRejectLeaveAPIView(APIView):
         return Response({"detail": "TL rejected leave."})
 
 
-# ------------------------------
 # TL: Team Attendance List
-# ------------------------------
+
 class TLTeamAttendanceAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsTL]
     serializer_class = AttendanceReadSerializer
@@ -74,7 +71,7 @@ class TLTeamAttendanceAPIView(generics.ListAPIView):
     def get_queryset(self):
         month = self.request.query_params.get("month")
         team = EmployeeProfile.objects.filter(
-            manager=self.request.user).values_list("user", flat=True)
+            team_lead=self.request.user).values_list("user", flat=True)
 
         qs = Attendance.objects.filter(user__in=team)
 
@@ -85,9 +82,8 @@ class TLTeamAttendanceAPIView(generics.ListAPIView):
         return qs.order_by("-date")
 
 
-# ------------------------------
 # TL: Create Calendar Event (Team Meeting)
-# ------------------------------
+
 class TLCreateEventAPIView(APIView):
     permission_classes = [IsAuthenticated, IsTL]
 
@@ -112,16 +108,15 @@ class TLCreateEventAPIView(APIView):
         return Response(CalendarEventSerializer(event).data, status=201)
 
 
-# ------------------------------
 # TL Dashboard Summary
-# ------------------------------
+
 class TLDashboardAPIView(APIView):
     permission_classes = [IsAuthenticated, IsTL]
 
     def get(self, request):
         user = request.user
 
-        team_members = EmployeeProfile.objects.filter(manager=user)
+        team_members = EmployeeProfile.objects.filter(team_lead=user)
 
         # Team count
         team_count = team_members.count()
@@ -163,3 +158,19 @@ class TLDashboardAPIView(APIView):
             },
             "recent_meetings": meeting_data
         })
+
+
+class TeamLeadListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Optional query param: ?department=<dept>
+        dept = request.query_params.get('department')
+        # users with role 'tl' AND having EmployeeProfile
+        qs = User.objects.filter(role='tl', employeeprofile__isnull=False)
+        if dept:
+            qs = qs.filter(employeeprofile__department__iexact=dept)
+        # prefer list of EmployeeProfile info
+        profiles = EmployeeProfile.objects.filter(user__in=qs)
+        ser = TeamMemberSerializer(profiles, many=True)
+        return Response(ser.data)
