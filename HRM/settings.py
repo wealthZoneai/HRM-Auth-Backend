@@ -15,7 +15,7 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 
 ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS", "127.0.0.1,localhost,hrm-auth-backend.onrender.com").split(",")
+    "ALLOWED_HOSTS", "127.0.0.1,localhost,hrm-auth-backend.onrender.com,hrm-auth-backend.onrender.com").split(",")
 
 
 INSTALLED_APPS = [
@@ -37,8 +37,9 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -150,33 +151,16 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Enable WhiteNoise only if the package is installed. This prevents import errors
-# on developer machines where whitenoise may not be available.
-try:
-    import importlib
-    importlib.import_module('whitenoise')
-
-    # Insert middleware after SecurityMiddleware if not already present
-    wn_mw = 'whitenoise.middleware.WhiteNoiseMiddleware'
-    if wn_mw not in MIDDLEWARE:
-        # place after SecurityMiddleware (index 2)
-        insert_index = 2 if len(MIDDLEWARE) >= 2 else len(MIDDLEWARE)
-        MIDDLEWARE.insert(insert_index, wn_mw)
-
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-except Exception:
-    # whitenoise not installed — continue without it (development fallback)
-    STATICFILES_STORAGE = None
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media/"
+# Simplified static files configuration for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
