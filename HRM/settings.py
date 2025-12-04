@@ -39,7 +39,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -158,7 +157,23 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Enable WhiteNoise only if the package is installed. This prevents import errors
+# on developer machines where whitenoise may not be available.
+try:
+    import importlib
+    importlib.import_module('whitenoise')
+
+    # Insert middleware after SecurityMiddleware if not already present
+    wn_mw = 'whitenoise.middleware.WhiteNoiseMiddleware'
+    if wn_mw not in MIDDLEWARE:
+        # place after SecurityMiddleware (index 2)
+        insert_index = 2 if len(MIDDLEWARE) >= 2 else len(MIDDLEWARE)
+        MIDDLEWARE.insert(insert_index, wn_mw)
+
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+except Exception:
+    # whitenoise not installed — continue without it (development fallback)
+    STATICFILES_STORAGE = None
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
