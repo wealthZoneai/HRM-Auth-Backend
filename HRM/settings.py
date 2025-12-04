@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
 
-    'hr', 'emp', 'tl', 'login', 'management',
+    'login',  # Only keep the login app for authentication
 ]
 
 
